@@ -11,3 +11,28 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.App {
+  text-align: center;
+}
+
+.drum-pad {
+  margin: 0.5em;
+  font-size: 24px;
+  height: 3em;
+  width: 3em;
+  border-radius: 0.5em;
+  background-color: gray;
+  color: black;
+}
+
+.pad-bank {
+  margin: 1em;
+}
+
+.drum-machine-container {
+  display: flex;
+  flex-direction: row;
+  width: auto;
+
+}
