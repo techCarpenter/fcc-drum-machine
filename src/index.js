@@ -2,17 +2,63 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
+import { thisTypeAnnotation } from "@babel/types";
 
-const keyArr = [
-  { trigger: 1, displayId: "Q", audioFile: "../media/alien.mp3", fileDesc: "Alien" },
-  { trigger: 2, displayId: "W", audioFile: "../media/bongoDubTap.mp3", fileDesc: "Bongo Double Tap" },
-  { trigger: 3, displayId: "E", audioFile: "../media/bongoHi.mp3", fileDesc: "Bongo Hi Pitch" },
-  { trigger: 4, displayId: "A", audioFile: "../media/bongoRoll.mp3", fileDesc: "Bongo Roll" },
-  { trigger: 5, displayId: "S", audioFile: "../media/pinballBumper.mp3", fileDesc: "Pinball Bumper" },
-  { trigger: 6, displayId: "D", audioFile: "../media/pinballLaneRollover.mp3", fileDesc: "Rollover" },
-  { trigger: 7, displayId: "Z", audioFile: "../media/plasticTray.mp3", fileDesc: "Tray" },
-  { trigger: 8, displayId: "X", audioFile: "../media/reverseCymbal.mp3", fileDesc: "Cymbal" },
-  { trigger: 9, displayId: "C", audioFile: "../media/robot.mp3", fileDesc: "Robot" }
+const padArr = [
+  {
+    trigger: 81,
+    displayId: "Q",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3",
+    fileDesc: "Alien"
+  },
+  {
+    trigger: 87,
+    displayId: "W",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Heater-2.mp3",
+    fileDesc: "Bongo Double Tap"
+  },
+  {
+    trigger: 69,
+    displayId: "E",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Heater-3.mp3",
+    fileDesc: "Bongo Hi Pitch"
+  },
+  {
+    trigger: 65,
+    displayId: "A",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Heater-4_1.mp3",
+    fileDesc: "Bongo Roll"
+  },
+  {
+    trigger: 83,
+    displayId: "S",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3",
+    fileDesc: "Pinball Bumper"
+  },
+  {
+    trigger: 68,
+    displayId: "D",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3",
+    fileDesc: "Rollover"
+  },
+  {
+    trigger: 90,
+    displayId: "Z",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3",
+    fileDesc: "Tray"
+  },
+  {
+    trigger: 88,
+    displayId: "X",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3",
+    fileDesc: "Cymbal"
+  },
+  {
+    trigger: 67,
+    displayId: "C",
+    audioFile: "https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3",
+    fileDesc: "Robot"
+  }
 ];
 /**
  * App contains all sub components
@@ -20,63 +66,117 @@ const keyArr = [
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      currentSound: ""
+    };
+    this.setDescription = this.setDescription.bind(this);
   }
-
+  setDescription(description) {
+    this.setState({currentSound: description});
+  }
   render() {
     return (
       <React.Fragment>
-        <PadBank />
-        <Controls />
+        <PadBank callBack={this.setDescription}/>
+        <Controls description={this.state.currentSound}/>
       </React.Fragment>
     );
   }
 }
 /**
- * The Drumpads class contains all drum key components
+ * The PadBank class contains all drum key components
  */
 class PadBank extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
   render() {
-    return (
-      <div className="pad-bank">
-        <div className="key-row">
-          {DrumPad({ id: "key-1", name: keyArr[0].displayId, file: keyArr[0].audioFile })}
-          {DrumPad({ id: "key-2", name: keyArr[1].displayId })}
-          {DrumPad({ id: "key-3", name: keyArr[2].displayId })}
-        </div>
-        <div className="key-row">
-          {DrumPad({ id: "key-4", name: keyArr[3].displayId })}
-          {DrumPad({ id: "key-5", name: keyArr[4].displayId })}
-          {DrumPad({ id: "key-6", name: keyArr[5].displayId })}
-        </div>
-        <div className="key-row">
-          {DrumPad({ id: "key-7", name: keyArr[6].displayId })}
-          {DrumPad({ id: "key-8", name: keyArr[7].displayId })}
-          {DrumPad({ id: "key-9", name: keyArr[8].displayId })}
-        </div>
-      </div>
-    );
+    let padBank = padArr.map((item, i) => {
+      return (
+        <DrumPad
+          id={"key-" + i}
+          audioFile={padArr[i].audioFile}
+          displayId={padArr[i].displayId}
+          fileDesc={padArr[i].fileDesc}
+          trigger={padArr[i].trigger}
+          callBack={this.props.callBack}
+        />
+      );
+
+    });
+    return <div className="pad-bank">{padBank}</div>;
   }
 }
+const activeStyle = {
+  backgroundColor: "orange"
+};
+const inactiveStyle = {
+  backgroundColor: "gray"
+};
 /**
  * A button element
  * @param {object} props This will contain information to create a JSX button element
  */
-const DrumPad = props => {
-  return (
-    <button id={props.id} className="drum-pad">
-      <p>{props.name}</p>
-    </button>
-  );
-};
+class DrumPad extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      padStyle: inactiveStyle
+    };
+    this.playSound = this.playSound.bind(this);
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.activatePad = this.activatePad.bind(this);
+  }
+  componentDidMount() {
+    document.addEventListener("keydown", this.handleKeyPress);
+  }
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyPress);
+  }
+  handleKeyPress(event) {
+    if (event.keyCode === this.props.trigger) {
+      this.playSound();
+    }
+  }
+  playSound() {
+    const sound = document.getElementById(this.props.displayId);
+    this.setState({ IsActive: true });
+    this.props.callBack(this.props.fileDesc);
+    // @ts-ignore
+    sound.currentTime = 0;
+    // @ts-ignore
+    sound.play();
+    this.activatePad();
+    setTimeout(() => this.activatePad(), 200);
+  }
+  activatePad() {
+    this.state.padStyle.backgroundColor === "orange"
+      ? this.setState({ padStyle: inactiveStyle })
+      : this.setState({ padStyle: activeStyle });
+  }
+  render() {
+    return (
+      <button
+        id={this.props.id}
+        style={this.state.padStyle}
+        className="drum-pad"
+        onClick={this.playSound}
+      >
+        <audio
+          className="clip"
+          id={this.props.displayId}
+          src={this.props.audioFile}
+        ></audio>
+        {this.props.displayId}
+      </button>
+    );
+  }
+}
 
 class Controls extends React.Component {
   render() {
-    return <div className="control-box"></div>;   //TODO Fill in info block
+    return (
+      <div className="control-box">
+        <p id="display">{this.props.description}</p>
+      </div>
+    ); //TODO Fill in info block
   }
 }
 
